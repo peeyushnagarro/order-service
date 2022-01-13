@@ -27,6 +27,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.client.ResourceAccessException;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 
 @Service
 public class OrderService {
@@ -169,21 +171,40 @@ public class OrderService {
 		return 60;
 	}
 
+	@Async
 	private void publishNotification(int customerId) {
 		try {
-			notificationServiceProxy.publishNotification(customerId);
+			publishNotificationFromNotificationService(customerId);
 			logger.info("Notification published for given customer id : " + customerId);
 		} catch(Exception exception) {
 			logger.info("Exception occurred while publishing notification for given customer id : " + customerId + " from notification-service");
 			exception.printStackTrace();
 		}
 	}
+	
+	@HystrixCommand(fallbackMethod = "fallbackForPublishNotificationFromNotificationService",
+            commandProperties = {
+                     @HystrixProperty(
+                                       name= "circuitBreaker.requestVolumeThreshold",
+                                       value="6"),
+                     @HystrixProperty(
+                                      name= "circuitBreaker.enabled", 
+                                      value = "false")
+           } )
+	private void publishNotificationFromNotificationService(int customerId) {
+		notificationServiceProxy.publishNotification(customerId);
+	}
+	
+	private void fallbackForPublishNotificationFromNotificationService() {
+		logger.info("Into fallback method to publish notification from notification service");
+		logger.info("Notification is not published");
+	}
 
 	@Async
 	public CompletableFuture<Integer> getArticle(int articleId) {
 		logger.info("Going to make request to get article from inventory-service for given article id : " + articleId);
 		try {
-			Article article = inventoryServiceProxy.getArticle(articleId);
+			Article article = getArticleFromInventoryService(articleId);
 			
 			if(article == null) {
 				logger.info("Article not found for given article id : " + articleId);
@@ -197,5 +218,23 @@ public class OrderService {
 			exception.printStackTrace();
 			return CompletableFuture.completedFuture(-1);
 		}
+	}
+	
+	@HystrixCommand(fallbackMethod = "fallbackForGetArticleFromInventoryService",
+            commandProperties = {
+                     @HystrixProperty(
+                                       name= "circuitBreaker.requestVolumeThreshold",
+                                       value="6"),
+                     @HystrixProperty(
+                                      name= "circuitBreaker.enabled", 
+                                      value = "false")
+           } )
+	public Article getArticleFromInventoryService(int articleId) {
+		return inventoryServiceProxy.getArticle(articleId);
+	}
+	
+	public Article fallbackForGetArticleFromInventoryService() {
+		logger.info("Into fallback method to get article from inventory service");
+		return null;
 	}
 }

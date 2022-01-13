@@ -15,7 +15,7 @@ import com.order.dto.OrderCreateResponse;
 import com.order.service.OrderService;
 
 @RestController
-@RequestMapping(path="/api/orders/")
+@RequestMapping(path="/api/orders")
 public class OrderController {
 	
 	private static final Logger logger = LogManager.getLogger(OrderController.class);
@@ -23,7 +23,7 @@ public class OrderController {
 	@Autowired
 	private OrderService orderService;
 	
-	@GetMapping("{orderId}")
+	@GetMapping("/{orderId}")
 	public Order getOrder(@PathVariable int orderId) {
 		return orderService.getOrder(orderId);
 	}

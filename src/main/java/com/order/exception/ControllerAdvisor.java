@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 public class ControllerAdvisor extends ResponseEntityExceptionHandler{
 	
 	@ExceptionHandler(OrderNotCreatedException.class)
-	public ResponseEntity<Object> handleCityNotFoundException(OrderNotCreatedException exception, WebRequest request) {
+	public ResponseEntity<Object> handleOrderNotCreatedException(OrderNotCreatedException exception, WebRequest request) {
 		Map<String, String> body = new LinkedHashMap<>();
         body.put("reason", String.format("Given atricle(s) : [%s] not found in inventory", exception.getNotFoundArticleIds()));
         body.put("message", "Order not created");

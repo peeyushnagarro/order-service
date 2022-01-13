@@ -10,10 +10,14 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import java.time.Duration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.cloud.netflix.hystrix.EnableHystrix;
+import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
 
 @SpringBootApplication
 @EnableAsync
 @EnableFeignClients("com.order")
+@EnableHystrix
+@EnableHystrixDashboard
 public class OrderServiceApplication {
 
 	public static void main(String[] args) {
@@ -34,5 +38,6 @@ public class OrderServiceApplication {
 	public RestTemplate restTemplate(RestTemplateBuilder builder) {
 	    return builder.build();
 	}
+	
 
 }
